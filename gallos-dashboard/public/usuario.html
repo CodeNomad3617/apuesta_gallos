@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resumen de Apuestas</title>
+  <style>
+    /* Estilos generales */
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f7f7f7;
+      color: #333;
+      margin: 40px 0;
+    }
+    h1 {
+      color: #1a73e8;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .resumen-container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 8px;
+    }
+
+    /* Estilos para los saldos */
+    .saldo {
+      font-size: 22px;
+      font-weight: bold;
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .saldo-inicial {
+      background-color: #2196f3; /* Fondo azul para el saldo inicial */
+    }
+
+    .saldo-actual {
+      background-color: #4caf50; /* Fondo verde para el saldo actual */
+    }
+
+    /* Listas de apuestas */
+    ul {
+      padding-left: 20px;
+      list-style-type: none;
+      margin-bottom: 20px;
+    }
+    li {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+
+    li:hover {
+      background-color: #f1f1f1; /* Cambio de fondo al pasar el ratón */
+    }
+
+    li .color-circle {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    /* Colores de los resultados */
+    .resultado {
+      font-weight: bold;
+      padding: 2px 10px;
+      border-radius: 10px;
+    }
+    .ganado {
+      background-color: #c8e6c9;
+      color: #2e7d32;
+    }
+    .perdido {
+      background-color: #ffcdd2;
+      color: #c62828;
+    }
+    .empate {
+      background-color: #ffe0b2;
+      color: #ef6c00;
+    }
+    .pendiente {
+      background-color: #e0e0e0;
+      color: #616161;
+    }
+
+    /* Estilos para la sección de botones */
+    .button {
+      background-color: #ff5722;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: block;
+      margin: 20px auto;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    /* Mensaje de 'no hay datos' */
+    .no-data {
+      text-align: center;
+      color: #999;
+      font-style: italic;
+    }
+
+    /* Acordeón oculto */
+    .apuestas-lista {
+      display: none;
+      margin-top: 10px;
+    }
+
+    /* Estilo del contador de resultados */
+    .resultados-contador {
+      background-color: #e3f2fd;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      font-size: 18px;
+      text-align: center;
+      color: #1e88e5;
+    }
+    .resultados-contador p {
+      margin: 5px 0;
+    }
+  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnj2i68BldCgnbBHchwWIiAWmGsETuTR4",
+      authDomain: "gallos-app-6ac95.firebaseapp.com",
+      projectId: "gallos-app-6ac95",
+      storageBucket: "gallos-app-6ac95.appspot.com",
+      messagingSenderId: "1026205994287",
+      appId: "1:1026205994287:web:860938c1c7eeaa8c42a5da",
+      measurementId: "G-VHBD6Q99B4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const resumenDiv = document.getElementById("resumen");
+
+    function getCssColor(nombreColor) {
+      if (!nombreColor) return "#000";
+      const color = nombreColor.toLowerCase();
+      if (color === "rojo") return "red";
+      if (color === "verde") return "green";
+      return "#777";
+    }
+
+    function resultadoVisual(resultado) {
+      if (resultado === "Ganó") {
+        return `<span class="resultado ganado">✅ Ganó</span>`;
+      } else if (resultado === "Perdió") {
+        return `<span class="resultado perdido">❌ Perdió</span>`;
+      } else if (resultado === "Empate") {
+        return `<span class="resultado empate">🤝 Empate</span>`;
+      } else {
+        return `<span class="resultado pendiente">⏳ Pendiente</span>`;
+      }
+    }
+
+    if (!id) {
+      resumenDiv.innerHTML = "<p>Falta el ID del usuario en la URL. Usa: usuario.html?id=peque123</p>";
+    } else {
+      const ref = doc(db, "usuarios", id);
+      getDoc(ref).then(docSnap => {
+        if (!docSnap.exists()) {
+          resumenDiv.innerHTML = "<p>Usuario no encontrado.</p>";
+          return;
+        }
+
+        const data = docSnap.data();
+        const apuestas = data.apuestas || [];
+
+        // Filtramos las apuestas pendientes y las terminadas
+        const apuestasPendientes = apuestas.filter(apuesta => apuesta.resultado === null);
+        const apuestasTerminadas = apuestas.filter(apuesta => apuesta.resultado !== null);
+
+        // Invertir el orden de las apuestas terminadas
+        apuestasTerminadas.reverse();
+
+        // Mostrar apuestas pendientes
+        let apuestasPendientesHTML = apuestasPendientes.map(apuesta => {
+          const colorCSS = getCssColor(apuesta.color);
+          const resultado = resultadoVisual(apuesta.resultado);
+          return ` 
+            <li>
+              <div style="display: flex; align-items: center;">
+                <span class="color-circle" style="background-color: ${colorCSS};"></span>
+                <strong>Pelea ${apuesta.pelea}</strong>
+              </div>
+              <div>💰 Monto: $${apuesta.monto} | 🏁 Resultado: ${resultado}</div>
+            </li>
+          `;
+        }).join("");
+
+        // Mostrar apuestas terminadas
+        let apuestasTerminadasHTML = apuestasTerminadas.map(apuesta => {
+          const colorCSS = getCssColor(apuesta.color);
+          const resultado = resultadoVisual(apuesta.resultado);
+          return `
+            <li>
+              <div style="display: flex; align-items: center;">
+                <span class="color-circle" style="background-color: ${colorCSS};"></span>
+                <strong>Pelea ${apuesta.pelea}</strong>
+              </div>
+              <div>💰 Monto: $${apuesta.monto} | 🏁 Resultado: ${resultado}</div>
+            </li>
+          `;
+        }).join("");
+
+        // Contador de resultados (ganadas, perdidas, empatadas)
+        const totalPeleas = apuestasTerminadas.length;
+        const ganadas = apuestasTerminadas.filter(apuesta => apuesta.resultado === "Ganó").length;
+        const perdidas = apuestasTerminadas.filter(apuesta => apuesta.resultado === "Perdió").length;
+        const empatadas = apuestasTerminadas.filter(apuesta => apuesta.resultado === "Empate").length;
+
+        resumenDiv.innerHTML = `
+          <div class="resumen-container">
+            <h2>${data.nombre}</h2>
+            <div class="saldo saldo-inicial">
+              <strong>Saldo Inicial:</strong> $${data.saldoInicial}
+            </div>
+            <div class="saldo saldo-actual">
+              <strong>Saldo Actual:</strong> $${data.saldoActual}
+            </div>
+
+            <div class="resultados-contador">
+              <p><strong>Total de peleas:</strong> ${totalPeleas}</p>
+              <p><strong>Ganadas:</strong> ${ganadas}</p>
+              <p><strong>Perdidas:</strong> ${perdidas}</p>
+              <p><strong>Empatadas:</strong> ${empatadas}</p>
+            </div>
+
+            <div class="section-title">Apuestas Pendientes</div>
+            <ul>
+              ${apuestasPendientesHTML || "<li class='no-data'>No hay apuestas pendientes.</li>"}
+            </ul>
+
+            <div class="section-title">Apuestas Terminadas</div>
+            <ul>
+              ${apuestasTerminadasHTML || "<li class='no-data'>No hay apuestas terminadas.</li>"}
+            </ul>
+
+            <button class="button" onclick="window.location.reload();">Actualizar página</button>
+          </div>
+        `;
+      }).catch(err => {
+        resumenDiv.innerHTML = `<p>Error al obtener los datos: ${err.message}</p>`;
+      });
+    }
+  </script>
+</head>
+<body>
+  <h1>Resumen de Apuestas</h1>
+  <div id="resumen"></div>
+</body>
+</html>
