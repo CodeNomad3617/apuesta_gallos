@@ -41,6 +41,12 @@ class _PantallaHistorialUsuarioState extends State<PantallaHistorialUsuario> {
     final pdf = pw.Document();
     final apuestas = List<Map<String, dynamic>>.from(usuarioData!['apuestas'] ?? []);
 
+    // Contar las apuestas ganadas, perdidas y empatadas
+    int totalApuestas = apuestas.length;
+    int ganadas = apuestas.where((ap) => ap['resultado'] == 'Ganó').length;
+    int perdidas = apuestas.where((ap) => ap['resultado'] == 'Perdió').length;
+    int empatadas = apuestas.where((ap) => ap['resultado'] == 'Empate').length;
+
     pdf.addPage(
       pw.Page(
         build: (pw.Context context) {
@@ -50,13 +56,21 @@ class _PantallaHistorialUsuarioState extends State<PantallaHistorialUsuario> {
               pw.Text('Resumen de apuestas - ${usuarioData!['nombre']}', style: pw.TextStyle(fontSize: 20)),
               pw.SizedBox(height: 10),
               pw.Text('ID: $usuarioId'),
+              pw.Text('Saldo inicial: \$${usuarioData!['saldoInicial']}'),
               pw.Text('Saldo actual: \$${usuarioData!['saldoActual']}'),
+              pw.SizedBox(height: 20),
+              pw.Text('Estadísticas de apuestas:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 10),
+              pw.Text('Total de Apuestas: $totalApuestas'),
+              pw.Text('Apuestas Ganadas: $ganadas'),
+              pw.Text('Apuestas Perdidas: $perdidas'),
+              pw.Text('Apuestas Empatadas: $empatadas'),
               pw.SizedBox(height: 20),
               pw.Text('Apuestas:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 10),
               ...apuestas.map((ap) {
                 return pw.Text(
-                  'Torneo ${ap['pelea']} | #${ap['numeroApuesta']} del usuario | \$${ap['monto']} | Color: ${ap['color']} | Resultado: ${ap['resultado']} | Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(ap['fecha']))}',
+                  'Torneo: ${ap['pelea']} | #${ap['numeroApuesta']} | \$${ap['monto']} | Color: ${ap['color']} | Resultado: ${ap['resultado']} | Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(ap['fecha']))}',
                   style: pw.TextStyle(fontSize: 10),
                 );
               }).toList(),
