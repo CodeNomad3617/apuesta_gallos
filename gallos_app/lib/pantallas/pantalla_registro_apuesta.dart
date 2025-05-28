@@ -295,21 +295,6 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: saldoActualVisible != null
-                        ? () {
-                            recargarSaldo();  // Aquí mostramos el cuadro para ingresar el monto
-                          }
-                        : null,  // Deshabilitar si el saldo no es 0
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: const Text(
-                      'Recargar saldo',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                  ),
                 ),
               ],
             ),
