@@ -10,7 +10,8 @@ class PantallaRegistroApuesta extends StatefulWidget {
 
 class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
   final _peleaController = TextEditingController();
-  final _montoController = TextEditingController();
+  final _montoPerdidaController = TextEditingController();
+  final _montoGananciaController = TextEditingController();
 
   String? _usuarioSeleccionadoId;
   String? _colorSeleccionado;
@@ -42,9 +43,11 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
     final id = _usuarioSeleccionadoId;
     final pelea = int.tryParse(_peleaController.text.trim());
     final color = _colorSeleccionado;
-    final monto = double.tryParse(_montoController.text.trim());
 
-    if (id == null || pelea == null || color == null || monto == null) {
+    final montoPerdida = double.tryParse(_montoPerdidaController.text.trim());
+    final montoGanancia = double.tryParse(_montoGananciaController.text.trim());
+
+    if (id == null || pelea == null || color == null || montoPerdida == null || montoGanancia == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Llena todos los campos correctamente.')),
       );
@@ -69,7 +72,7 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
     final numeroApuesta = apuestas.length + 1;
     final saldoActual = (data['saldoActual'] ?? 0).toDouble();
 
-    if (monto > saldoActual) {
+    if (montoPerdida > saldoActual) {
       setState(() => guardando = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('El monto excede el saldo actual de \$${saldoActual.toStringAsFixed(2)}')),
@@ -77,13 +80,14 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
       return;
     }
 
-    final nuevoSaldo = saldoActual - monto;
+    final nuevoSaldo = saldoActual - montoPerdida;
 
     final nuevaApuesta = {
       'pelea': pelea,
       'numeroApuesta': numeroApuesta,
       'color': color,
-      'monto': monto,
+      'montoPerdida': montoPerdida,
+      'montoGanancia': montoGanancia,
       'resultado': null,
       'fecha': DateTime.now().toIso8601String(),
     };
@@ -96,7 +100,8 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
     setState(() {
       guardando = false;
       _peleaController.clear();
-      _montoController.clear();
+      _montoPerdidaController.clear();
+      _montoGananciaController.clear();
       _colorSeleccionado = null;
       _usuarioSeleccionadoId = null;
       saldoActualVisible = null;
@@ -107,11 +112,9 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
     );
   }
 
-  // Recargar saldo con un prompt para el monto
   void recargarSaldo() async {
     if (_usuarioSeleccionadoId == null) return;
 
-    // Mostrar un cuadro de diálogo para ingresar el monto de la recarga
     double? cantidad = await showDialog<double>(
       context: context,
       builder: (BuildContext context) {
@@ -141,7 +144,6 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
       },
     );
 
-    // Si no se ingresó un monto o es inválido, salir de la función
     if (cantidad == null || cantidad <= 0) return;
 
     final docRef = FirebaseFirestore.instance.collection('usuarios').doc(_usuarioSeleccionadoId);
@@ -267,7 +269,8 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
                   onChanged: (val) => setState(() => _colorSeleccionado = val),
                 ),
                 const SizedBox(height: 16),
-                buildInput(label: 'Monto apostado', controller: _montoController, type: TextInputType.number),
+                buildInput(label: 'PIERDE:', controller: _montoPerdidaController, type: TextInputType.number),
+                buildInput(label: 'GANA:', controller: _montoGananciaController, type: TextInputType.number),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,

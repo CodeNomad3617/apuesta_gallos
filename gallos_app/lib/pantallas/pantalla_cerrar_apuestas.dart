@@ -24,6 +24,9 @@ class _PantallaCerrarApuestasState extends State<PantallaCerrarApuestas> {
       final apuestas = List<Map<String, dynamic>>.from(data['apuestas'] ?? []);
       bool modificado = false;
 
+      // Guardamos el saldo antes de hacer la apuesta
+      double saldoAntesDeApuesta = (data['saldoActual'] ?? 0).toDouble();
+      
       for (var ap in apuestas) {
         if (ap['pelea'] == pelea && ap['resultado'] == null) {
           ap['resultado'] = (resultadoGlobal == 'Empate')
@@ -34,10 +37,13 @@ class _PantallaCerrarApuestasState extends State<PantallaCerrarApuestas> {
       }
 
       if (modificado) {
-        double saldo = (data['saldoInicial'] ?? 0).toDouble();
+        double saldo = saldoAntesDeApuesta;
+
+        // Ajustamos el saldo dependiendo del resultado
         for (var ap in apuestas) {
-          if (ap['resultado'] == 'Ganó') saldo += (ap['monto'] ?? 0).toDouble();
-          if (ap['resultado'] == 'Perdió') saldo -= (ap['monto'] ?? 0).toDouble();
+          if (ap['resultado'] == 'Ganó') saldo += (ap['montoGanancia'] ?? 0).toDouble();
+          if (ap['resultado'] == 'Perdió') saldo -= (ap['montoPerdida'] ?? 0).toDouble();
+          if (ap['resultado'] == 'Empate') saldo = saldoAntesDeApuesta + (ap['montoPerdida'] ?? 0).toDouble();  // En caso de empate, se restaura el saldo original
         }
 
         await FirebaseFirestore.instance.collection('usuarios').doc(doc.id).update({
@@ -147,7 +153,7 @@ class _PantallaCerrarApuestasState extends State<PantallaCerrarApuestas> {
                                       ),
                                       const Icon(Icons.attach_money, size: 18, color: Colors.blue),
                                       const SizedBox(width: 4),
-                                      Text('\$${ap['monto']}', style: const TextStyle(color: Colors.blue)),
+                                      Text('\$${ap['montoGanancia'] ?? 0}', style: const TextStyle(color: Colors.blue)),
                                     ],
                                   ),
                                   const SizedBox(height: 4),
@@ -163,12 +169,25 @@ class _PantallaCerrarApuestasState extends State<PantallaCerrarApuestas> {
                                       Text(fecha, style: const TextStyle(fontSize: 12)),
                                     ],
                                   ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      const Text('Pierde si pierde: '),
+                                      Text('\$${ap['montoPerdida']}', style: const TextStyle(color: Colors.red)),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      const Text('Gana si gana: '),
+                                      Text('\$${ap['montoGanancia']}', style: const TextStyle(color: Colors.green)),
+                                    ],
+                                  ),
                                 ],
                               ),
                             );
                           }),
                           const SizedBox(height: 16),
-                          DropdownButtonFormField<String>(
+                          DropdownButtonFormField<String>( 
                             value: resultadosSeleccionados[pelea],
                             decoration: const InputDecoration(
                               labelText: 'Seleccionar resultado',
