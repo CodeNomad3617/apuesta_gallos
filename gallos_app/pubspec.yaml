@@ -18,6 +18,7 @@ dependencies:
   open_file: ^3.3.2
   lottie: ^2.7.0
   flutter_animate: ^4.1.1+1
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
