@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'pantallas/pantalla_home.dart';
 import 'pantallas/pantalla_bienvenida.dart'; // 👈 asegúrate de tener este archivo
 
 void main() async {
@@ -32,7 +31,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Roboto',
         scaffoldBackgroundColor: const Color(0xFFFFF3E0),
       ),
-      home: const PantallaBienvenida(), // 👈 Pantalla inicial
+      home: const PantallaBienvenida(), 
     );
   }
 }
