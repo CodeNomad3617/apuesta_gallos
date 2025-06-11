@@ -13,6 +13,7 @@ dependencies:
   qr_flutter: ^4.1.0
   intl: ^0.18.1
   pdf: ^3.10.4
+  google_fonts: ^4.0.4
   path_provider: ^2.1.2
   open_file: ^3.3.2
   lottie: ^2.7.0

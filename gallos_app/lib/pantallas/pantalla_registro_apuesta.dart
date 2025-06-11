@@ -20,6 +20,12 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
   double? saldoActualVisible;
   List<Map<String, dynamic>> usuarios = [];
 
+  // Colores premium
+  final Color rojoPremium = Color(0xFFC62828); // Rojo oscuro premium
+  final Color rojoClaro = Color(0xFFEF9A9A); // Rojo claro para fondos
+  final Color doradoPremium = Color(0xFFFFD700); // Dorado para acentos
+  final Color grisOscuro = Color(0xFF424242); // Gris oscuro para texto
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +55,10 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
 
     if (id == null || pelea == null || color == null || montoPerdida == null || montoGanancia == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Llena todos los campos correctamente.')),
+        SnackBar(
+          content: Text('Llena todos los campos correctamente.'),
+          backgroundColor: rojoPremium,
+        ),
       );
       return;
     }
@@ -62,7 +71,10 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
     if (!docSnap.exists) {
       setState(() => guardando = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('El usuario con ID "$id" no existe.')),
+        SnackBar(
+          content: Text('El usuario con ID "$id" no existe.'),
+          backgroundColor: rojoPremium,
+        ),
       );
       return;
     }
@@ -75,7 +87,10 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
     if (montoPerdida > saldoActual) {
       setState(() => guardando = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('El monto excede el saldo actual de \$${saldoActual.toStringAsFixed(2)}')),
+        SnackBar(
+          content: Text('El monto excede el saldo actual de \$${saldoActual.toStringAsFixed(2)}'),
+          backgroundColor: rojoPremium,
+        ),
       );
       return;
     }
@@ -88,7 +103,9 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
       'color': color,
       'montoPerdida': montoPerdida,
       'montoGanancia': montoGanancia,
+      'monto': montoPerdida,
       'resultado': null,
+      'montoDevuelto': 0,
       'fecha': DateTime.now().toIso8601String(),
     };
 
@@ -108,7 +125,10 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('¡Apuesta registrada con éxito!')),
+      SnackBar(
+        content: Text('¡Apuesta registrada con éxito!'),
+        backgroundColor: Colors.green.shade700,
+      ),
     );
   }
 
@@ -120,10 +140,16 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
       builder: (BuildContext context) {
         double? monto;
         return AlertDialog(
-          title: const Text('Recargar saldo'),
+          title: Text('Recargar saldo', style: TextStyle(color: rojoPremium)),
           content: TextField(
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Monto a recargar'),
+            decoration: InputDecoration(
+              labelText: 'Monto a recargar',
+              labelStyle: TextStyle(color: grisOscuro),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: rojoPremium),
+              ),
+            ),
             onChanged: (value) {
               monto = double.tryParse(value);
             },
@@ -131,13 +157,13 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(null),
-              child: const Text('Cancelar'),
+              child: Text('Cancelar', style: TextStyle(color: rojoPremium)),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(monto);
               },
-              child: const Text('Recargar'),
+              child: Text('Recargar', style: TextStyle(color: rojoPremium)),
             ),
           ],
         );
@@ -153,7 +179,6 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
 
     final data = docSnap.data()!;
     final saldoActual = (data['saldoActual'] ?? 0).toDouble();
-
     final nuevoSaldo = saldoActual + cantidad;
 
     await docRef.update({
@@ -161,7 +186,10 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Saldo recargado con éxito. Nuevo saldo: \$${nuevoSaldo.toStringAsFixed(2)}')),
+      SnackBar(
+        content: Text('Saldo recargado con éxito. Nuevo saldo: \$${nuevoSaldo.toStringAsFixed(2)}'),
+        backgroundColor: Colors.green.shade700,
+      ),
     );
 
     setState(() {
@@ -177,8 +205,23 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
         keyboardType: type,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: const Icon(Icons.input),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          labelStyle: TextStyle(color: grisOscuro),
+          prefixIcon: Icon(Icons.input, color: rojoPremium),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade400),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade400),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: rojoPremium, width: 2),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         ),
       ),
     );
@@ -186,115 +229,234 @@ class _PantallaRegistroApuestaState extends State<PantallaRegistroApuesta> {
 
   @override
   Widget build(BuildContext context) {
-    final redAccent = Colors.redAccent.shade700;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Registrar Apuesta'),
+        title: Text('REGISTRO DE APUESTAS',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+              color: Colors.white,
+            )),
         centerTitle: true,
-        backgroundColor: redAccent,
+        backgroundColor: rojoPremium,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(16),
+          ),
+        ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFDEDEC), Color(0xFFFFF3E0)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.grey[50]!,
+              rojoClaro.withOpacity(0.1),
+            ],
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20.0),
           child: SingleChildScrollView(
             child: Column(
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.edit_note, size: 30, color: redAccent),
-                    const SizedBox(width: 8),
-                    const Text('Datos de la Apuesta',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _usuarioSeleccionadoId,
-                  decoration: InputDecoration(
-                    labelText: 'Selecciona un apostador',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  items: usuarios
-                      .map((usuario) => DropdownMenuItem<String>(
-                            value: usuario['id'],
-                            child: Text(usuario['nombre']),
-                          ))
-                      .toList(),
-                  onChanged: (val) async {
-                    setState(() => _usuarioSeleccionadoId = val);
-                    if (val != null) {
-                      final doc = await FirebaseFirestore.instance.collection('usuarios').doc(val).get();
-                      if (doc.exists) {
-                        final data = doc.data();
-                        setState(() {
-                          saldoActualVisible = (data?['saldoActual'] ?? 0).toDouble();
-                        });
-                      }
-                    }
-                  },
-                ),
-                if (saldoActualVisible != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8, bottom: 16),
-                    child: Text(
-                      'Saldo actual: \$${saldoActualVisible!.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.casino, size: 32, color: rojoPremium),
+                            SizedBox(width: 12),
+                            Text('DATOS DE LA APUESTA',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: grisOscuro,
+                                )),
+                          ],
+                        ),
+                        SizedBox(height: 24),
+                        DropdownButtonFormField<String>(
+                          value: _usuarioSeleccionadoId,
+                          decoration: InputDecoration(
+                            labelText: 'Selecciona un apostador',
+                            labelStyle: TextStyle(color: grisOscuro),
+                            prefixIcon: Icon(Icons.person, color: rojoPremium),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade400),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade400),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: rojoPremium, width: 2),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                          items: usuarios
+                              .map((usuario) => DropdownMenuItem<String>(
+                                    value: usuario['id'],
+                                    child: Text(usuario['nombre']),
+                                  ))
+                              .toList(),
+                          onChanged: (val) async {
+                            setState(() => _usuarioSeleccionadoId = val);
+                            if (val != null) {
+                              final doc = await FirebaseFirestore.instance
+                                  .collection('usuarios')
+                                  .doc(val)
+                                  .get();
+                              if (doc.exists) {
+                                final data = doc.data();
+                                setState(() {
+                                  saldoActualVisible = (data?['saldoActual'] ?? 0).toDouble();
+                                });
+                              }
+                            }
+                          },
+                        ),
+                        if (saldoActualVisible != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16, bottom: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Saldo actual: \$${saldoActualVisible!.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green.shade700,
+                                  ),
+                                ),
+                                TextButton.icon(
+                                  onPressed: saldoActualVisible == 0 ? recargarSaldo : null, // Deshabilitado si saldo > 0
+                                  icon: Icon(
+                                    Icons.add_circle, 
+                                    color: saldoActualVisible == 0 ? rojoPremium : Colors.grey, // Gris cuando está deshabilitado
+                                  ),
+                                  label: Text(
+                                    'Recargar',
+                                    style: TextStyle(
+                                      color: saldoActualVisible == 0 ? rojoPremium : Colors.grey, // Gris cuando está deshabilitado
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        buildInput(
+                            label: 'Número de pelea (torneo)',
+                            controller: _peleaController,
+                            type: TextInputType.number),
+                        DropdownButtonFormField<String>(
+                          value: _colorSeleccionado,
+                          decoration: InputDecoration(
+                            labelText: 'Color elegido',
+                            labelStyle: TextStyle(color: grisOscuro),
+                            prefixIcon: Icon(Icons.color_lens, color: rojoPremium),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade400),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade400),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: rojoPremium, width: 2),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'Rojo',
+                              child: Row(children: [
+                                Icon(Icons.circle, color: Colors.red, size: 16),
+                                SizedBox(width: 8),
+                                Text('Rojo')
+                              ])),
+                            DropdownMenuItem(
+                                value: 'Verde',
+                                child: Row(children: [
+                                  Icon(Icons.circle, color: Colors.green, size: 16),
+                                  SizedBox(width: 8),
+                                  Text('Verde')
+                                ])),
+                          ],
+                          onChanged: (val) => setState(() => _colorSeleccionado = val),
+                        ),
+                        SizedBox(height: 16),
+                        buildInput(
+                            label: 'PIERDE:',
+                            controller: _montoPerdidaController,
+                            type: TextInputType.number),
+                        buildInput(
+                            label: 'GANA:',
+                            controller: _montoGananciaController,
+                            type: TextInputType.number),
+                      ],
                     ),
                   ),
-                buildInput(label: 'Número de pelea (torneo)', controller: _peleaController, type: TextInputType.number),
-                DropdownButtonFormField<String>(
-                  value: _colorSeleccionado,
-                  decoration: InputDecoration(
-                    labelText: 'Color elegido',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'Rojo',
-                      child: Row(children: [Icon(Icons.circle, color: Colors.red, size: 16), SizedBox(width: 8), Text('Rojo')]),
-                    ),
-                    DropdownMenuItem(
-                      value: 'Verde',
-                      child: Row(children: [Icon(Icons.circle, color: Colors.green, size: 16), SizedBox(width: 8), Text('Verde')]),
-                    ),
-                  ],
-                  onChanged: (val) => setState(() => _colorSeleccionado = val),
                 ),
-                const SizedBox(height: 16),
-                buildInput(label: 'PIERDE:', controller: _montoPerdidaController, type: TextInputType.number),
-                buildInput(label: 'GANA:', controller: _montoGananciaController, type: TextInputType.number),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton.icon(
+                  height: 56,
+                  child: ElevatedButton(
                     onPressed: guardando || saldoActualVisible == 0
-                        ? null // Deshabilitar el botón si el saldo es 0
+                        ? null
                         : registrarApuesta,
-                    icon: guardando
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Icon(Icons.add, color: Colors.white),
-                    label: Text(
-                      guardando ? 'Guardando...' : 'Registrar Apuesta',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: redAccent,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      backgroundColor: rojoPremium,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      shadowColor: rojoPremium.withOpacity(0.4),
                     ),
+                    child: guardando
+                        ? SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add, color: Colors.white),
+                              SizedBox(width: 12),
+                              Text(
+                                'REGISTRAR APUESTA',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
+                            ],
+                          ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
                 ),
               ],
             ),

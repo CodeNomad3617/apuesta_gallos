@@ -9,40 +9,42 @@ class PantallaBienvenida extends StatefulWidget {
   State<PantallaBienvenida> createState() => _PantallaBienvenidaState();
 }
 
-class _PantallaBienvenidaState extends State<PantallaBienvenida> with SingleTickerProviderStateMixin {
+class _PantallaBienvenidaState extends State<PantallaBienvenida> 
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _fadeIn;
-  late Animation<Offset> _slideButton;
-  bool isAppEnabled = true; // Variable para controlar si la app está habilitada
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
+  bool isAppEnabled = true;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
-    _fadeIn = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-    _slideButton = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
     );
+    
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+    );
+    
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+    
     _controller.forward();
-    listenAppStatus();  // Escuchar los cambios en Firestore
+    listenAppStatus();
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  // Escuchar el estado de la app en Firestore (tiempo real)
   void listenAppStatus() {
     FirebaseFirestore.instance
         .collection('config')
-        .doc('appSettings')  // El documento que contiene el estado de la app
-        .snapshots() // Usamos snapshots para escuchar en tiempo real
+        .doc('appSettings')
+        .snapshots()
         .listen((snapshot) {
       if (snapshot.exists) {
         setState(() {
-          isAppEnabled = snapshot['appEnabled']; // Actualizamos el estado de la app
+          isAppEnabled = snapshot['appEnabled'];
         });
       }
     });
@@ -50,109 +52,211 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida> with SingleTick
 
   void _irAHome() {
     if (isAppEnabled) {
-      // Si la app está habilitada, navega a la pantalla principal
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const PantallaHome()),
       );
     } else {
-      // Si la app está deshabilitada, muestra un mensaje
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('La aplicación está deshabilitada temporalmente.')),
+        SnackBar(
+          content: Text('La aplicación está en mantenimiento. Disculpe las molestias.'),
+          backgroundColor: Colors.amber[800],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    
     return Scaffold(
       body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFAFAFA), Color(0xFFFFEBEE)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.grey[900]!,
+              Colors.blueGrey[900]!,
+            ],
           ),
         ),
         child: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeIn,
-            child: Column(
-              children: [
-                const Spacer(),
-                // Logo gallo o emoji
-                Container(
+          child: Stack(
+            children: [
+              // Elementos decorativos de fondo
+              Positioned(
+                top: -size.width * 0.2,
+                right: -size.width * 0.2,
+                child: Container(
+                  width: size.width * 0.6,
+                  height: size.width * 0.6,
                   decoration: BoxDecoration(
-                    color: Colors.white,
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.redAccent.shade100,
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(20),
-                  child: const Text(
-                    '🐓',
-                    style: TextStyle(fontSize: 100),
+                    color: Colors.blueGrey[800]!.withOpacity(0.1),
                   ),
                 ),
-                const SizedBox(height: 30),
-                const Text(
-                  'ApuestArte',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.redAccent,
-                    letterSpacing: 1.5,
-                    shadows: [
-                      Shadow(blurRadius: 4, offset: Offset(2, 2), color: Colors.black26),
-                    ],
+              ),
+              
+              Positioned(
+                bottom: -size.width * 0.3,
+                left: -size.width * 0.3,
+                child: Container(
+                  width: size.width * 0.8,
+                  height: size.width * 0.8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.indigo[900]!.withOpacity(0.1),
                   ),
                 ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Control de apuestas profesional\ny fácil de usar',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.black87,
-                  ),
-                ),
-                const Spacer(),
-                SlideTransition(
-                  position: _slideButton,
-                  child: ElevatedButton(
-                    onPressed: _irAHome,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent.shade700,
-                      foregroundColor: Colors.white,
-                      elevation: 10,
-                      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
-                      shadowColor: Colors.redAccent,
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
+              ),
+              
+              // Contenido principal
+              Center(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.play_arrow_rounded, size: 28),
-                        SizedBox(width: 8),
+                        // Logo premium
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.tealAccent.withOpacity(0.3),
+                              width: 2,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.auto_awesome,
+                            size: 80,
+                            color: Colors.tealAccent[400],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 40),
+                        
+                        // Título principal
                         Text(
-                          'Entrar a la app',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                          'CAP',
+                          style: TextStyle(
+                            fontSize: 42,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 3,
+                            fontFamily: 'Roboto',
+                            shadows: [
+                              Shadow(
+                                color: Colors.tealAccent.withOpacity(0.3),
+                                blurRadius: 10,
+                                offset: Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 15),
+                        
+                        // Subtítulo
+                        Text(
+                          'CONTROL DE APUESTAS\nPROFESIONAL',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.blueGrey[200],
+                            letterSpacing: 1.5,
+                            height: 1.5,
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 50),
+                        
+                        // Botón de acción
+                        AnimatedBuilder(
+                          animation: _controller,
+                          builder: (context, child) {
+                            return Transform.translate(
+                              offset: Offset(
+                                0,
+                                30 * (1 - _controller.value),
+                              ),
+                              child: child,
+                            );
+                          },
+                          child: ElevatedButton(
+                            onPressed: _irAHome,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.tealAccent[400],
+                              foregroundColor: Colors.grey[900],
+                              elevation: 15,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 40,
+                                vertical: 20,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              shadowColor: Colors.tealAccent.withOpacity(0.5),
+                            ),
+                            child: const Text(
+                              'INICIAR SESIÓN',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 60),
-              ],
-            ),
+              ),
+              
+              // Versión y copyright
+              Positioned(
+                bottom: 20,
+                left: 0,
+                right: 0,
+                child: Column(
+                  children: [
+                    Text(
+                      'v1.0.0',
+                      style: TextStyle(
+                        color: Colors.blueGrey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      '© 2025 CAP. Todos los derechos reservados.',
+                      style: TextStyle(
+                        color: Colors.blueGrey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }

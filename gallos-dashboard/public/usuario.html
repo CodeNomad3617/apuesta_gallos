@@ -228,16 +228,21 @@
         let apuestasTerminadasHTML = apuestasTerminadas.map(apuesta => {
           const colorCSS = getCssColor(apuesta.color);
           const resultado = resultadoVisual(apuesta.resultado);
+          const monto = apuesta.resultado === "Ganó"
+            ? apuesta.montoGanancia ?? 0
+            : apuesta.montoPerdida ?? 0;
+
           return `
             <li>
               <div style="display: flex; align-items: center;">
                 <span class="color-circle" style="background-color: ${colorCSS};"></span>
                 <strong>Pelea ${apuesta.pelea}</strong>
               </div>
-              <div>💰 Monto: $${apuesta.monto} | 🏁 Resultado: ${resultado}</div>
+              <div>💰 Monto: $${monto} | 🏁 Resultado: ${resultado}</div>
             </li>
           `;
         }).join("");
+
 
         // Contador de resultados (ganadas, perdidas, empatadas)
         const totalPeleas = apuestasTerminadas.length;

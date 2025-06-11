@@ -17,6 +17,11 @@ class _PantallaRegistroUsuarioState extends State<PantallaRegistroUsuario> {
   String? enlaceGenerado;
   bool guardando = false;
 
+  // Definimos los colores estilo casino
+  final Color verdeCasino = Color(0xFF00A65A); // Verde brillante estilo casino
+  final Color verdeOscuroCasino = Color(0xFF008040); // Verde más oscuro para contrastes
+  final Color doradoCasino = Color(0xFFFFD700); // Dorado para acentos
+
   void guardarUsuario() async {
     final nombre = _nombreController.text.trim();
     final saldo = double.tryParse(_saldoController.text.trim()) ?? 0;
@@ -45,7 +50,10 @@ class _PantallaRegistroUsuarioState extends State<PantallaRegistroUsuario> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Usuario registrado con éxito')),
+        SnackBar(
+          content: Text('Usuario registrado con éxito'),
+          backgroundColor: verdeCasino,
+        ),
       );
     } catch (e) {
       setState(() => guardando = false);
@@ -63,8 +71,23 @@ class _PantallaRegistroUsuarioState extends State<PantallaRegistroUsuario> {
         keyboardType: type,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: const Icon(Icons.input),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          labelStyle: TextStyle(color: Colors.grey[700]),
+          prefixIcon: Icon(Icons.input, color: Colors.grey[700]),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey[400]!),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey[400]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: verdeCasino, width: 2), // Borde verde casino al enfocar
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         ),
       ),
     );
@@ -72,77 +95,177 @@ class _PantallaRegistroUsuarioState extends State<PantallaRegistroUsuario> {
 
   @override
   Widget build(BuildContext context) {
-    final redAccent = Colors.redAccent.shade700;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Registrar Apostador'),
+        title: const Text('REGISTRO DE APOSTADOR',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+              color: Colors.white,
+            )),
         centerTitle: true,
-        backgroundColor: redAccent,
+        backgroundColor: verdeCasino, // Usamos el verde casino
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(16),
+          ),
+        ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFDEDEC), Color(0xFFFFF3E0)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.grey[100]!,
+              Colors.grey[200]!,
+            ],
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20.0),
           child: SingleChildScrollView(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.person_add_alt_1, size: 30, color: redAccent),
-                    const SizedBox(width: 8),
-                    const Text('Datos del nuevo apostador',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                buildInput(label: 'Nombre del usuario', controller: _nombreController),
-                buildInput(label: 'ID único (ej. peque123)', controller: _idController),
-                buildInput(label: 'Saldo inicial', controller: _saldoController, type: TextInputType.number),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: guardando ? null : guardarUsuario,
-                    icon: guardando
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Icon(Icons.save, color: Colors.white),
-                    label: Text(
-                      guardando ? 'Guardando...' : 'Guardar y generar QR',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      elevation: 5,
-                      backgroundColor: redAccent,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.person_add_alt_1,
+                                size: 32, color: verdeCasino), // Icono verde casino
+                            const SizedBox(width: 12),
+                            Text('DATOS DEL APOSTADOR',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.grey[800],
+                                )),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        buildInput(
+                            label: 'Nombre completo', controller: _nombreController),
+                        buildInput(
+                            label: 'ID único (ej. peque123)',
+                            controller: _idController),
+                        buildInput(
+                            label: 'Saldo inicial',
+                            controller: _saldoController,
+                            type: TextInputType.number),
+                      ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: guardando ? null : guardarUsuario,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: verdeCasino, // Botón verde casino
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      shadowColor: verdeOscuroCasino.withOpacity(0.4),
+                    ),
+                    child: guardando
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.save_alt, color: Colors.white),
+                              const SizedBox(width: 12),
+                              Text(
+                                'GUARDAR Y GENERAR QR',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
                 if (enlaceGenerado != null) ...[
-                  const Text('Link generado:', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  SelectableText(enlaceGenerado!, style: const TextStyle(color: Colors.blue)),
-                  const SizedBox(height: 12),
-                  QrImageView(
-                    data: enlaceGenerado!,
-                    version: QrVersions.auto,
-                    size: 200.0,
+                  const SizedBox(height: 32),
+                  Center(
+                    child: Column(
+                      children: [
+                        Text('ENLACE GENERADO',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.grey[800],
+                            )),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: SelectableText(
+                            enlaceGenerado!,
+                            style: TextStyle(
+                              color: verdeCasino, // Texto verde casino
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                spreadRadius: 2,
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: QrImageView(
+                            data: enlaceGenerado!,
+                            version: QrVersions.auto,
+                            size: 200.0,
+                            eyeStyle: QrEyeStyle(
+                              eyeShape: QrEyeShape.square,
+                              color: verdeCasino, // Ojos del QR en verde casino
+                            ),
+                            dataModuleStyle: QrDataModuleStyle(
+                              dataModuleShape: QrDataModuleShape.square,
+                              color: Colors.grey[800]!,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ],
