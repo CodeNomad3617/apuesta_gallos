@@ -83,7 +83,7 @@ class _PantallaCerrarApuestasState extends State<PantallaCerrarApuestas> {
           MaterialPageRoute(
             builder: (_) => WillPopScope(
               onWillPop: () async => false,
-              child: PantallaDevolucionEmpate(
+              child: PantallaPago(
                 pelea: pelea,
                 tipo: resultadoGlobal == 'Empate' ? 'Empate' : 'Ganador',
                 colorGanador: resultadoGlobal != 'Empate' ? resultadoGlobal : null,

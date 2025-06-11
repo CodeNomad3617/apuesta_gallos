@@ -17,6 +17,7 @@ dependencies:
   path_provider: ^2.1.2
   open_file: ^3.3.2
   lottie: ^2.7.0
+  flutter_animate: ^4.1.1+1
 
 dev_dependencies:
   flutter_test:
@@ -27,9 +28,10 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/bienvenida.png
+    - assets/gallo.jpeg
+
 
 flutter_icons:
   android: true  # Generar icono para Android
   ios: true      # Generar icono para iOS
-  image_path: "assets/icono_app.png"  # Ruta a tu icono personalizado
+  image_path: "assets/icono_1.jpeg"  # Ruta a tu icono personalizado

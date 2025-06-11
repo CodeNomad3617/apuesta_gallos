@@ -9,7 +9,7 @@ class PantallaBienvenida extends StatefulWidget {
   State<PantallaBienvenida> createState() => _PantallaBienvenidaState();
 }
 
-class _PantallaBienvenidaState extends State<PantallaBienvenida> 
+class _PantallaBienvenidaState extends State<PantallaBienvenida>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
@@ -23,15 +23,17 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
-    
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
-    
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-    
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
     _controller.forward();
     listenAppStatus();
   }
@@ -42,12 +44,12 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
         .doc('appSettings')
         .snapshots()
         .listen((snapshot) {
-      if (snapshot.exists) {
-        setState(() {
-          isAppEnabled = snapshot['appEnabled'];
+          if (snapshot.exists) {
+            setState(() {
+              isAppEnabled = snapshot['appEnabled'];
+            });
+          }
         });
-      }
-    });
   }
 
   void _irAHome() {
@@ -58,7 +60,9 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('La aplicación está en mantenimiento. Disculpe las molestias.'),
+          content: Text(
+            'La aplicación está en mantenimiento. Disculpe las molestias.',
+          ),
           backgroundColor: Colors.amber[800],
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -72,23 +76,19 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.grey[900]!,
-              Colors.blueGrey[900]!,
-            ],
+            colors: [Colors.grey[900]!, Colors.blueGrey[900]!],
           ),
         ),
         child: SafeArea(
           child: Stack(
             children: [
-              // Elementos decorativos de fondo
               Positioned(
                 top: -size.width * 0.2,
                 right: -size.width * 0.2,
@@ -101,7 +101,6 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                   ),
                 ),
               ),
-              
               Positioned(
                 bottom: -size.width * 0.3,
                 left: -size.width * 0.3,
@@ -114,8 +113,6 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                   ),
                 ),
               ),
-              
-              // Contenido principal
               Center(
                 child: FadeTransition(
                   opacity: _fadeAnimation,
@@ -124,9 +121,8 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Logo premium
                         Container(
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.1),
                             shape: BoxShape.circle,
@@ -135,16 +131,22 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                               width: 2,
                             ),
                           ),
-                          child: Icon(
-                            Icons.auto_awesome,
-                            size: 80,
-                            color: Colors.tealAccent[400],
+                          child: ClipOval(
+                            child: Image.asset(
+                              'assets/gallo.jpeg', // Asegúrate que coincide con el nombre en pubspec.yaml
+                              width: 300,
+                              height: 300,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.image,
+                                  color: Colors.white,
+                                ); // Widget alternativo si falla la carga
+                              },
+                            ),
                           ),
                         ),
-                        
                         const SizedBox(height: 40),
-                        
-                        // Título principal
                         Text(
                           'CAP',
                           style: TextStyle(
@@ -162,12 +164,9 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                             ],
                           ),
                         ),
-                        
                         const SizedBox(height: 15),
-                        
-                        // Subtítulo
                         Text(
-                          'CONTROL DE APUESTAS\nPROFESIONAL',
+                          'MÁXIMO CONTROL, MÁXIMA EMOCIÓN',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 18,
@@ -176,18 +175,12 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                             height: 1.5,
                           ),
                         ),
-                        
                         const SizedBox(height: 50),
-                        
-                        // Botón de acción
                         AnimatedBuilder(
                           animation: _controller,
                           builder: (context, child) {
                             return Transform.translate(
-                              offset: Offset(
-                                0,
-                                30 * (1 - _controller.value),
-                              ),
+                              offset: Offset(0, 30 * (1 - _controller.value)),
                               child: child,
                             );
                           },
@@ -221,8 +214,6 @@ class _PantallaBienvenidaState extends State<PantallaBienvenida>
                   ),
                 ),
               ),
-              
-              // Versión y copyright
               Positioned(
                 bottom: 20,
                 left: 0,

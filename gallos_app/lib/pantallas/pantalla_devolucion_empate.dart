@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-class PantallaDevolucionEmpate extends StatefulWidget {
+class PantallaPago extends StatefulWidget {
   final int pelea;
   final String tipo; // 'Empate' o 'Ganador'
   final String? colorGanador; // Requerido si tipo == 'Ganador'
 
-  const PantallaDevolucionEmpate({
+  const PantallaPago({
     Key? key,
     required this.pelea,
     required this.tipo,
@@ -15,10 +15,10 @@ class PantallaDevolucionEmpate extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<PantallaDevolucionEmpate> createState() => _PantallaDevolucionEmpateState();
+  State<PantallaPago> createState() => _PantallaPagoState();
 }
 
-class _PantallaDevolucionEmpateState extends State<PantallaDevolucionEmpate> {
+class _PantallaPagoState extends State<PantallaPago> {
   final Map<String, TextEditingController> _controladores = {};
   List<Map<String, dynamic>> _usuariosConApuestas = [];
 
@@ -61,22 +61,24 @@ class _PantallaDevolucionEmpateState extends State<PantallaDevolucionEmpate> {
         }
 
         if (widget.tipo == 'Ganador' &&
-            peleaMatch &&
-            ap['resultado'] == 'Ganó' &&
-            ap['color'] == widget.colorGanador &&
-            (ap['montoPagado'] ?? 0) == 0) {
-          final monto = ap['montoGanancia'] ?? 0;
+    peleaMatch &&
+    ap['resultado'] == 'Ganó' &&
+    ap['color'] == widget.colorGanador &&
+    (ap['montoPagado'] ?? 0) == 0) {
+  final montoApuesta = ap['monto'] ?? 0;
+  final montoGanancia = ap['montoGanancia'] ?? 0;
+  final montoTotal = montoApuesta + montoGanancia;
 
-          temp.add({
-            'id': id,
-            'nombre': nombre,
-            'monto': monto,
-            'color': color,
-            'fecha': fecha,
-            'apuesta': ap,
-          });
-          _controladores[id] = TextEditingController(text: monto.toString());
-        }
+  temp.add({
+    'id': id,
+    'nombre': nombre,
+    'monto': montoTotal,  // Mostramos el total
+    'color': color,
+    'fecha': fecha,
+    'apuesta': ap,
+  });
+  _controladores[id] = TextEditingController(text: montoTotal.toString());
+}
       }
     }
 
@@ -84,55 +86,57 @@ class _PantallaDevolucionEmpateState extends State<PantallaDevolucionEmpate> {
   }
 
   Future<void> _guardarCambios() async {
-    for (var usuario in _usuariosConApuestas) {
-      final docId = usuario['id'];
-      final nuevaCantidad = double.tryParse(_controladores[docId]?.text ?? '') ?? 0;
+  for (var usuario in _usuariosConApuestas) {
+    final docId = usuario['id'];
+    final nuevaCantidad = double.tryParse(_controladores[docId]?.text ?? '') ?? 0;
 
-      final docRef = FirebaseFirestore.instance.collection('usuarios').doc(docId);
-      final snapshot = await docRef.get();
-      final data = snapshot.data();
-      if (data == null) continue;
+    final docRef = FirebaseFirestore.instance.collection('usuarios').doc(docId);
+    final snapshot = await docRef.get();
+    final data = snapshot.data();
+    if (data == null) continue;
 
-      List<Map<String, dynamic>> apuestas = List<Map<String, dynamic>>.from(data['apuestas'] ?? []);
-      double saldoActual = (data['saldoActual'] ?? 0).toDouble();
+    List<Map<String, dynamic>> apuestas = List<Map<String, dynamic>>.from(data['apuestas'] ?? []);
+    double saldoActual = (data['saldoActual'] ?? 0).toDouble();
 
-      for (var ap in apuestas) {
-        if (ap['pelea'] == widget.pelea) {
-          if (widget.tipo == 'Empate' &&
-              ap['resultado'] == 'Empate' &&
-              (ap['montoDevuelto'] ?? 0) == 0) {
-            ap['montoDevuelto'] = nuevaCantidad;
-            saldoActual += nuevaCantidad;
-          }
+    for (var ap in apuestas) {
+      if (ap['pelea'] == widget.pelea) {
+        if (widget.tipo == 'Empate' &&
+            ap['resultado'] == 'Empate' &&
+            (ap['montoDevuelto'] ?? 0) == 0) {
+          ap['montoDevuelto'] = nuevaCantidad;
+          saldoActual += nuevaCantidad;
+        }
 
-          if (widget.tipo == 'Ganador' &&
-              ap['resultado'] == 'Ganó' &&
-              ap['color'] == widget.colorGanador &&
-              (ap['montoPagado'] ?? 0) == 0) {
-            ap['montoPagado'] = nuevaCantidad;
-            saldoActual += nuevaCantidad;
-          }
+        if (widget.tipo == 'Ganador' &&
+            ap['resultado'] == 'Ganó' &&
+            ap['color'] == widget.colorGanador &&
+            (ap['montoPagado'] ?? 0) == 0) {
+          // Aquí está la corrección: sumamos el monto apostado + las ganancias
+          //final montoTotal = (ap['monto'] ?? 0) + nuevaCantidad;
+          ap['montoPagado'] = nuevaCantidad;
+          saldoActual += nuevaCantidad;
         }
       }
-
-      await docRef.update({
-        'apuestas': apuestas,
-        'saldoActual': saldoActual,
-      });
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(widget.tipo == 'Empate'
-            ? '✅ Devoluciones guardadas correctamente'
-            : '✅ Pagos guardados correctamente'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-
-    Navigator.pop(context);
+    await docRef.update({
+      'apuestas': apuestas,
+      'saldoActual': saldoActual,
+    });
   }
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(widget.tipo == 'Empate'
+          ? '✅ Devoluciones guardadas correctamente'
+          : '✅ Pagos guardados correctamente'),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ),
+  );
+
+  Navigator.pop(context);
+}
 
   @override
   Widget build(BuildContext context) {

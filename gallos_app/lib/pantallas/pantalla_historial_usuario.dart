@@ -62,161 +62,158 @@ class _PantallaHistorialUsuarioState extends State<PantallaHistorialUsuario> {
   }
 
   Future<void> generarPDF() async {
-    if (usuarioData == null || usuarioId == null) return;
+  if (usuarioData == null || usuarioId == null) return;
 
-    final pdf = pw.Document();
-    final apuestas = List<Map<String, dynamic>>.from(usuarioData!['apuestas'] ?? []);
+  final pdf = pw.Document();
+  final apuestas = List<Map<String, dynamic>>.from(usuarioData!['apuestas'] ?? []);
 
-    int totalApuestas = apuestas.length;
-    int ganadas = apuestas.where((ap) => ap['resultado'] == 'Ganó').length;
-    int perdidas = apuestas.where((ap) => ap['resultado'] == 'Perdió').length;
-    int empatadas = apuestas.where((ap) => ap['resultado'] == 'Empate').length;
+  int totalApuestas = apuestas.length;
+  int ganadas = apuestas.where((ap) => ap['resultado'] == 'Ganó').length;
+  int perdidas = apuestas.where((ap) => ap['resultado'] == 'Perdió').length;
+  int empatadas = apuestas.where((ap) => ap['resultado'] == 'Empate').length;
 
-    // Cargar fuentes de Google Fonts
-    final robotoRegular = await GoogleFonts.getFont('Roboto');
-    final robotoBold = await GoogleFonts.getFont('Roboto', fontWeight: FontWeight.bold);
-
-    pdf.addPage(
-      pw.Page(
-        theme: pw.ThemeData.withFont(
-          base: pw.Font.ttf(robotoRegular as ByteData),
-          bold: pw.Font.ttf(robotoBold as ByteData),
-        ),
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Container(
-                width: double.infinity,
-                padding: const pw.EdgeInsets.all(20),
-                decoration: pw.BoxDecoration(
-                  color: PdfColors.purple800,
-                  borderRadius: pw.BorderRadius.circular(8),
-                ),
-                child: pw.Text(
-                  'Resumen de apuestas - ${usuarioData!['nombre']}', 
-                  style: pw.TextStyle(
-                    fontSize: 20,
-                    color: PdfColors.white,
-                    fontWeight: pw.FontWeight.bold
-                  ),
-                ),
-              ),
-              pw.SizedBox(height: 20),
-              pw.Text('ID: $usuarioId', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-              pw.Text('Saldo inicial: \$${usuarioData!['saldoInicial']}'),
-              pw.Text('Saldo actual: \$${usuarioData!['saldoActual']}'),
-              pw.SizedBox(height: 20),
-              pw.Divider(thickness: 1, color: PdfColors.purple300),
-              pw.Text('Estadísticas de apuestas:', 
-                style: pw.TextStyle(
-                  fontSize: 16,
-                  color: PdfColors.purple800,
-                  fontWeight: pw.FontWeight.bold
-                )
-              ),
-              pw.SizedBox(height: 10),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('Total de Apuestas:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                      pw.Text('$totalApuestas', style: pw.TextStyle(fontSize: 18)),
-                    ],
-                  ),
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('Ganadas:', style: pw.TextStyle(color: PdfColors.green, fontWeight: pw.FontWeight.bold)),
-                      pw.Text('$ganadas', style: pw.TextStyle(color: PdfColors.green, fontSize: 18)),
-                    ],
-                  ),
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('Perdidas:', style: pw.TextStyle(color: PdfColors.red, fontWeight: pw.FontWeight.bold)),
-                      pw.Text('$perdidas', style: pw.TextStyle(color: PdfColors.red, fontSize: 18)),
-                    ],
-                  ),
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('Empatadas:', style: pw.TextStyle(color: PdfColors.orange, fontWeight: pw.FontWeight.bold)),
-                      pw.Text('$empatadas', style: pw.TextStyle(color: PdfColors.orange, fontSize: 18)),
-                    ],
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 20),
-              pw.Divider(thickness: 1, color: PdfColors.purple300),
-              pw.Text('Detalle de apuestas:', 
-                style: pw.TextStyle(
-                  fontSize: 16,
-                  color: PdfColors.purple800,
-                  fontWeight: pw.FontWeight.bold
-                )
-              ),
-              pw.SizedBox(height: 10),
-              ...apuestas.map((ap) {
-                return pw.Container(
-                  margin: const pw.EdgeInsets.only(bottom: 8),
-                  padding: const pw.EdgeInsets.all(10),
-                  decoration: pw.BoxDecoration(
-                    border: pw.Border.all(color: PdfColors.purple200),
-                    borderRadius: pw.BorderRadius.circular(6),
-                  ),
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text(
-                        'Torneo: ${ap['pelea']} | #${ap['numeroApuesta']}',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                      pw.SizedBox(height: 4),
-                      pw.Text('Monto: \$${ap['montoPerdida'] ?? ap['monto'] ?? '?'}'),
-                      pw.SizedBox(height: 4),
-                      pw.Text('Color: ${ap['color']}'),
-                      pw.SizedBox(height: 4),
-                      pw.Text('Resultado: ${ap['resultado']}', 
-                        style: pw.TextStyle(
-                          color: ap['resultado'] == 'Ganó' ? PdfColors.green : 
-                                ap['resultado'] == 'Perdió' ? PdfColors.red : 
-                                PdfColors.orange,
-                          fontWeight: pw.FontWeight.bold
-                        )
-                      ),
-                      pw.SizedBox(height: 4),
-                      pw.Text('Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(ap['fecha']))}'),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ],
-          );
-        },
+  pdf.addPage(
+    pw.Page(
+      theme: pw.ThemeData.withFont(
+        base: pw.Font.helvetica(),
+        bold: pw.Font.helveticaBold(),
       ),
-    );
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Container(
+              width: double.infinity,
+              padding: const pw.EdgeInsets.all(20),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.purple800,
+                borderRadius: pw.BorderRadius.circular(8),
+              ),
+              child: pw.Text(
+                'Resumen de apuestas - ${usuarioData!['nombre']}',
+                style: pw.TextStyle(
+                  fontSize: 20,
+                  color: PdfColors.white,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 20),
+            pw.Text('ID: $usuarioId', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.Text('Saldo inicial: \$${usuarioData!['saldoInicial']}'),
+            pw.Text('Saldo actual: \$${usuarioData!['saldoActual']}'),
+            pw.SizedBox(height: 20),
+            pw.Divider(thickness: 1, color: PdfColors.purple300),
+            pw.Text('Estadísticas de apuestas:',
+                style: pw.TextStyle(
+                    fontSize: 16,
+                    color: PdfColors.purple800,
+                    fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 10),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('Total de Apuestas:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('$totalApuestas', style: pw.TextStyle(fontSize: 18)),
+                  ],
+                ),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('Ganadas:',
+                        style: pw.TextStyle(color: PdfColors.green, fontWeight: pw.FontWeight.bold)),
+                    pw.Text('$ganadas', style: pw.TextStyle(color: PdfColors.green, fontSize: 18)),
+                  ],
+                ),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('Perdidas:',
+                        style: pw.TextStyle(color: PdfColors.red, fontWeight: pw.FontWeight.bold)),
+                    pw.Text('$perdidas', style: pw.TextStyle(color: PdfColors.red, fontSize: 18)),
+                  ],
+                ),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('Empatadas:',
+                        style: pw.TextStyle(color: PdfColors.orange, fontWeight: pw.FontWeight.bold)),
+                    pw.Text('$empatadas', style: pw.TextStyle(color: PdfColors.orange, fontSize: 18)),
+                  ],
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 20),
+            pw.Divider(thickness: 1, color: PdfColors.purple300),
+            pw.Text('Detalle de apuestas:',
+                style: pw.TextStyle(
+                    fontSize: 16,
+                    color: PdfColors.purple800,
+                    fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 10),
+            ...apuestas.map((ap) {
+              return pw.Container(
+                margin: const pw.EdgeInsets.only(bottom: 8),
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.purple200),
+                  borderRadius: pw.BorderRadius.circular(6),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('Torneo: ${ap['pelea']} | #${ap['numeroApuesta']}',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.SizedBox(height: 4),
+                    pw.Text('Monto: \$${ap['montoPerdida'] ?? ap['monto'] ?? '?'}'),
+                    pw.SizedBox(height: 4),
+                    pw.Text('Color: ${ap['color']}'),
+                    pw.SizedBox(height: 4),
+                    pw.Text('Resultado: ${ap['resultado']}',
+                        style: pw.TextStyle(
+                          color: ap['resultado'] == 'Ganó'
+                              ? PdfColors.green
+                              : ap['resultado'] == 'Perdió'
+                                  ? PdfColors.red
+                                  : PdfColors.orange,
+                          fontWeight: pw.FontWeight.bold,
+                        )),
+                    pw.SizedBox(height: 4),
+                    pw.Text(
+                      'Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(ap['fecha']))}',
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ],
+        );
+      },
+    ),
+  );
 
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/historial_${usuarioId!}.pdf');
-    await file.writeAsBytes(await pdf.save());
+  final dir = await getApplicationDocumentsDirectory();
+  final file = File('${dir.path}/historial_${usuarioId!}.pdf');
+  await file.writeAsBytes(await pdf.save());
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('PDF generado exitosamente'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        backgroundColor: Colors.deepPurple,
-        action: SnackBarAction(
-          label: 'Abrir',
-          textColor: Colors.white,
-          onPressed: () => OpenFile.open(file.path),
-        ),
-      )
-    );
-  }
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('PDF generado exitosamente'),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      backgroundColor: Colors.deepPurple,
+      action: SnackBarAction(
+        label: 'Abrir',
+        textColor: Colors.white,
+        onPressed: () => OpenFile.open(file.path),
+      ),
+    ),
+  );
+}
+
 
   Widget buildColorCircle(String color) {
     final colorCode = color.toLowerCase() == 'rojo'
